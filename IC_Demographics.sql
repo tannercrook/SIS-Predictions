@@ -1,5 +1,5 @@
 SELECT 
-  p.personID AS studentNumber
+  p.studentNumber AS studentNumber
 , ISNULL(g.onTimeGradYr, YEAR(g.diplomaDate)) AS schedGradYear 
 , CASE 
 	WHEN g.diplomaDate IS NOT NULL THEN 1
