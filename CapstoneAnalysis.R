@@ -91,8 +91,8 @@ library('caTools')
 set.seed(111)
 
 #sample <- sample.split(tele$Churn, SplitRatio=0.70)
-train <- failedGrades[1:10000,]
-test <- failedGrades[10001:18410,]
+train <- failedGrades[1:15000,]
+test <- failedGrades[15001:18410,]
 
 model <- glm(dropout ~ ., family = binomial(link="logit"), data = train)
 summary(model)
@@ -102,8 +102,18 @@ model3 <- glm(dropout ~ gradeLevel+courseName, family = binomial(link = "logit")
 summary(model3)
 
 predict <- predict(model3, type="response")
-exp(cbind(Odd_Ratio = coef(model3), confint(model3)))
 
+# Analyzing results of test
+table(train$dropout, predict > 0.5)
+library(ROCR)
+
+ROCRpred <- prediction(predict, train$dropout)
+ROCRPerf <- performance(ROCRpred, 'tpr', 'fpr')
+plot(ROCRPerf, colorize = TRUE, text.adj = c(-0.2,1.7))
+
+auc <- performance(ROCRpred, measure = "auc")
+auc <- auc@y.values[[1]]
+auc
 
 
 
