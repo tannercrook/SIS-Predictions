@@ -118,5 +118,50 @@ auc
 
 
 
+# Fail Count Dataset Analysis
+# =====================================
 
+failCount = read.csv("~/Documents/capData/failCount.csv", header=TRUE)
+failCount$studentNumber <- NULL
+failCount$Total <- NULL
+
+#failCount$dropout <- failCount$graduated
+#failCount$dropout <- factor(failCount$dropout, levels=c(0,1), labels=c(1, 0))
+#failCount$graduated <- NULL
+
+# change NAs to 0s
+failCount[is.na(failCount)] <- 0
+
+
+library('caTools')
+
+# Set the seed so we can run multiple times
+set.seed(111)
+
+#sample <- sample.split(tele$Churn, SplitRatio=0.70)
+train <- failCount[1:2000,]
+test <- failCount[2001:2594,]
+
+
+model3 <- glm(graduated ~ ., family = binomial(link = "logit"), data=train)
+summary(model3)
+
+model3 <- glm(dropout ~ C+CMinus+F, family = binomial(link = "logit"), data=train)
+
+predict <- predict(model3, type="response")
+
+# Analyzing results of test
+table(train$graduated, predict > 0.5)
+library(ROCR)
+
+ROCRpred <- prediction(predict, train$graduated)
+ROCRPerf <- performance(ROCRpred, 'tpr', 'fpr')
+plot(ROCRPerf, colorize = TRUE, text.adj = c(-0.2,1.7))
+
+auc <- performance(ROCRpred, measure = "auc")
+auc <- auc@y.values[[1]]
+auc
+
+
+exp(cbind(Odd_Ratio = coef(model3), confint(model3)))
 
