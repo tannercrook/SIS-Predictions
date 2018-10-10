@@ -169,20 +169,16 @@ failCount[is.na(failCount)] <- 0
 
 # Make a function
 cat_counts <- function(A){
-  if (A >= 0 && A <= 6) {
-    return('0-6')
-  } else if (A > 6 && A <= 12) {
-    return('6-12')
-  } else if (A > 12 && A <= 24) {
-    return('12-24')
-  } else if (A > 24 && A <= 36) {
-    return('24-36')
-  } else if (A > 36 && A <= 48) {
-    return('36-48')
-  } else if (A > 48 && A <= 62) {
-    return('48-62')
-  } else if (A > 62) {
-    return('62+')
+  if (A == 0) {
+    return('0')
+  } else if (A >= 1 && A <= 2) {
+    return('1-2')
+  } else if (A > 2 && A <= 6) {
+    return('3-6')
+  } else if (A > 6 && A <= 10) {
+    return('7-10')
+  } else if (A > 10) {
+    return('11+')
   }
 }
 
@@ -232,6 +228,10 @@ fviz_famd_var(res.famd, col.var = "contrib", repel = TRUE,gradient.cols = c("#00
 
 library('caTools')
 
+#failedGrades$dropout <- failedGrades$graduated
+#failCount$graduated <- factor(failCount$graduated, levels=c(0,1), labels=c(1, 0))
+#failedGrades$graduated <- NULL
+
 # Set the seed so we can run multiple times
 set.seed(111)
 
@@ -244,7 +244,7 @@ model3 <- glm(graduated ~ ., family = binomial(link = "logit"), data=train)
 summary(model3)
 
 
-model3 <- glm(graduated ~ as.factor(F_cat)+as.factor(A_cat), family = binomial(link = "logit"), data=train)
+model3 <- glm(graduated ~ F_cat+DMinus_cat+D_cat+DPlus_cat+CMinus_cat+C_cat, family = binomial(link = "logit"), data=train)
 summary(model3)
 
 predict <- predict(model3, type="response")
