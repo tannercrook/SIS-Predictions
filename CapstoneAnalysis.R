@@ -30,8 +30,13 @@ grades$graduated <- factor(grades$graduated, levels=c(0,1), labels=c("No", "Yes"
 # Remove bad schedGradYear
 demographics<-demographics[demographics$schedGradYear != 0, ]
 
+# Find missing values
+sapply(grades, function(x) sum(is.na(x)))
+
 # Drop some columns
 grades$percentScore <- NULL
+grades$gradYear <- NULL
+grades$gradSchool <- NULL
 
 
 # Univariate Stats
@@ -41,9 +46,6 @@ barplot(table(demographics$graduated),xlab="Graduated",ylab="Frequency")
 
 library(FactoMineR)
 library(factoextra)
-
-# Find missing values
-sapply(grades, function(x) sum(is.na(x)))
 
 #currently won't run because the dataset is simply too large
 #res.famd <- FAMD(grades, graph=FALSE)
@@ -78,7 +80,7 @@ icGrades = read.csv("~/Documents/capData/IC_StoredGrades.csv", header=TRUE)
 grades <- rbind(icGrades,psGrades)
 
 
-failedGrades <- grades[grades$score %in% c('F','D-','D','D+'), ]
+failedGrades <- grades[grades$score %in% c('F','D-'), ]
 
 
 # Drop some columns
@@ -88,11 +90,18 @@ failedGrades$gradSchool <- NULL
 failedGrades$studentNumber <- NULL
 failedGrades$dateStored <- NULL
 failedGrades$percentScore <- NULL
-failedGrades$creditType <- NULL
 failedGrades$schedGradYear<- NULL
+
+failedGrades$score <- as.factor(failedGrades$score)
+failedGrades$courseName <- as.factor(failedGrades$courseName)
+failedGrades$gradeLevel <- as.factor(failedGrades$gradeLevel)
 
 summary(failedGrades)
 failedGrades <- failedGrades[complete.cases(failedGrades), ]
+
+res.famd <- FAMD(failedGrades, graph=TRUE)
+fviz_mfa_ind(res.famd, habillage = "graduated" ,addEllipses = TRUE)
+fviz_famd_var(res.famd, col.var = "contrib", repel = TRUE,gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
 
 #failedGrades$dropout <- failedGrades$graduated
 #failedGrades$dropout <- factor(failedGrades$dropout, levels=c(0,1), labels=c(1, 0))
@@ -106,14 +115,17 @@ library('caTools')
 set.seed(111)
 
 #sample <- sample.split(tele$Churn, SplitRatio=0.70)
-train <- failedGrades[1:12000,]
-test <- failedGrades[12001:18410,]
+train <- failedGrades[1:6500,]
+test <- failedGrades[6501:8840,]
 
 model <- glm(graduated ~ ., family = binomial(link="logit"), data = train)
 summary(model)
 
 
 model3 <- glm(graduated ~ factor(courseName)+factor(score), family = binomial(link = "logit"), data=train)
+summary(model3)
+
+model3 <- glm(graduated ~ factor(gradeLevel)+factor(score), family = binomial(link = "logit"), data=train)
 summary(model3)
 
 predict <- predict(model3, type="response")
